@@ -10,18 +10,24 @@ from .models import BookGuest
 from .tables import *
 from django_tables2 import RequestConfig
 from django.contrib import messages
+from user_agents import parse
 # Create your views here.
 
 
-class Book(View):
+class BookView(View):
     def get(self, request):
-        form = BookForm()
-        return render(request, 'example.html', {'form': form})
+        ObjectsTable = BookTable(BookGuest.objects.all())
+        RequestConfig(request, paginate={'per_page': 10}).configure(ObjectsTable)
+        return render(request, 'VievTable.html', {'ObjectTables': ObjectsTable})
 
-    def post(self, request):
-        form = BookForm(request.POST)
+
+def comments(request):
+
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES)
         if form.is_valid():
-            '''Start reCaptcha validation'''
+
+            ''' Begin reCAPTCHA validation '''
             recaptcha_response = request.POST.get('g-recaptcha-response')
             url = 'https://www.google.com/recaptcha/api/siteverify'
             values = {
@@ -37,14 +43,14 @@ class Book(View):
             if result['success']:
                 post = form.save(commit=False)
                 post.ip = get_ip(request)
-                post.cashBrowser = request.META['HTTP_USER_AGENT']
+                post.cashBrowser = str(parse(request.META['HTTP_USER_AGENT']))
                 post.save()
-        return redirect('/')
+                messages.success(request, 'New comment added with success!')
+            else:
+                messages.error(request, 'Invalid reCAPTCHA. Please try again.')
 
+            return redirect('/')
+    else:
+        form = BookForm()
 
-class BookView(View):
-    def get(self, request):
-        ObjectsTable = BookTable(BookGuest.objects.all())
-        RequestConfig(request, paginate={'per_page': 10}).configure(ObjectsTable)
-        return render(request, 'VievTable.html', {'ObjectTables': ObjectsTable})
-
+    return render(request, 'example.html', {'form': form})

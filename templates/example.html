@@ -15,7 +15,7 @@
 <body>
     <div class="container h-100">
         <div class="row h-100 justify-content-center align-items-center">
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form|crispy }}
             <div class="g-recaptcha" data-sitekey="6Leue3YUAAAAAPhufbS0ba4oB6zYs7YwGZ1lnoHI"></div>
@@ -23,10 +23,19 @@
         </form>
         </div>
         <div class="row h-100 justify-content-center align-items-center">
-        <form action="rezult/">
+        <form action="rezult/" enctype="multi-part/formdata">
             <button type="submit" style="width: 300px; height: 50px; margin-left: -60px" class="btn btn-success">ViewTable</button>
         </form>
         </div>
+         {% if messages %}
+            <ul class="messages" style="margin-left: 350px">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+         {% endif %}
     </div>
 </body>
 </html>
